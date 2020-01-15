@@ -2,7 +2,6 @@ repo: https://github.com/huntdatacenter/prometheus-node-exporter-charm.git
 includes:
   - 'layer:basic'
   - 'interface:http'
-  - 'interface:juju-info'
   - 'interface:prometheus-manual'
 options:
   basic:
