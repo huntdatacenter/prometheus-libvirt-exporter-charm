@@ -1,0 +1,10 @@
+series: bionic
+applications:
+  prometheus-libvirt-exporter:
+    charm: /tmp/charm-builds/prometheus-libvirt-exporter
+  ubuntu:
+    charm: cs:ubuntu
+    num_units: 1
+relations:
+- - ubuntu:juju-info
+  - prometheus-libvirt-exporter:juju-info

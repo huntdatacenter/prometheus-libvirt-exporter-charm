@@ -1,0 +1,21 @@
+name: prometheus-libvirt-exporter
+summary: Prometheus Libvirt Exporter
+maintainer: Matus Kosut <matus.kosut@ntnu.no>
+description: |
+  Exporting prometheus metrics from libvirt with openstack metadata.
+tags:
+  - monitoring
+  - prometheus
+subordinate: true
+series:
+  - xenial
+  - bionic
+requires:
+  nova-compute:
+    interface: juju-info
+    scope: container
+provides:
+  prometheus-target:
+    interface: http
+  prometheus-manual-job:
+    interface: prometheus-manual

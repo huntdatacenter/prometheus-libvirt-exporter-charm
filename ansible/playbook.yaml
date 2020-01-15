@@ -1,0 +1,87 @@
+- hosts: localhost
+  tasks:
+    ### Libvirt Prometheus Exporter
+    - name: Install dependencies
+      apt:
+        name: ["python3-pip", "python3-libvirt", "systemd-container", "sysstat"]
+        state: present
+      tags: install
+
+    - name: Check pip3 local path
+      stat:
+        path: /usr/local/bin/pip3
+      register: pip3_local
+      tags: install
+
+    - name: Install prometheus_client
+      pip:
+        name: prometheus_client
+        state: present
+        executable: /usr/local/bin/pip3
+      register: prometheus_client
+      when: pip3_local.stat.exists
+      tags: install
+
+    - name: Install prometheus_client
+      pip:
+        name: prometheus_client
+        state: present
+        executable: /usr/bin/pip3
+      register: prometheus_client
+      when: pip3_local.stat.exists == false
+      tags: install
+
+    - name: Place libvirt metadata manager
+      copy:
+        src: libvirtmetadata.py
+        dest: /usr/local/sbin/libvirtmetadata.py
+      register: libvirt_metadata
+      tags: install
+
+    - name: Place task scheduler
+      copy:
+        src: scheduler.py
+        dest: /usr/local/sbin/scheduler.py
+      register: task_scheduler
+      tags: install
+
+    - name: Place libvirt exporter
+      copy:
+        src: libvirt_exporter.py
+        dest: /usr/local/sbin/libvirt_exporter.py
+      register: libvirt_exporter
+      tags: install
+
+    - name: Render libvirt_exporter service template
+      template:
+        src: libvirt_exporter.service.j2
+        dest: /etc/systemd/system/libvirt_exporter.service
+        mode: 0644
+      register: libvirt_exporter_service
+      tags: install
+
+    - name: Restart and assure enabled libvirt_exporter
+      systemd:
+        name: libvirt_exporter
+        state: restarted
+        enabled: yes
+        daemon-reload: "{{ libvirt_exporter_service.changed }}"
+      register: service_restart
+      when: libvirt_exporter.changed or libvirt_metadata.changed or task_scheduler.changed or prometheus_client.changed or libvirt_exporter_service.changed
+      tags: install
+
+    - name: Start and enable libvirt_exporter
+      systemd:
+        name: libvirt_exporter
+        state: started
+        enabled: yes
+      when: service_restart is skipped
+      tags: install
+
+
+    - name: Stop and disable libvirt_exporter
+      systemd:
+        name: libvirt_exporter
+        state: stopped
+        enabled: no
+      tags: never, uninstall

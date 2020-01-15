@@ -1,0 +1,16 @@
+options:
+  port:
+    type: int
+    default: 9121
+    description: |
+      Port to bind http exporter.
+  host:
+    type: string
+    default: "none"
+    description: |
+      IP on which the port is open. If none use unit_private_ip. "0.0.0.0" for all interfaces.
+  debug:
+    default: false
+    type: boolean
+    description: |
+      Debug logging for exporter.

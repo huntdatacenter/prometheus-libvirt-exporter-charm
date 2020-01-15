@@ -1,0 +1,10 @@
+[Unit]
+Description=Libvirt Node Exporter
+After=syslog.target
+
+[Service]
+User=root
+ExecStart=/usr/bin/python3 /usr/local/sbin/libvirt_exporter.py --ip "{% if not exp_host or exp_host == 'none' %}{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}{% else %}{{ exp_host }}{% endif %}" --port {{ exp_port }}
+
+[Install]
+WantedBy=multi-user.target
