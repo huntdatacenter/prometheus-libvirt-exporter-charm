@@ -7,4 +7,4 @@ applications:
     num_units: 1
 relations:
 - - ubuntu:juju-info
-  - prometheus-libvirt-exporter:juju-info
+  - prometheus-libvirt-exporter:nova-compute
