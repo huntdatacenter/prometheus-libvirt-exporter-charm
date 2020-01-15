@@ -1,4 +1,4 @@
-repo: https://gitlab.com/huntgenes/juju-bundles.git
+repo: https://github.com/huntdatacenter/prometheus-node-exporter-charm.git
 includes:
   - 'layer:basic'
   - 'interface:http'

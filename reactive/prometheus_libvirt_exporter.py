@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 
-from charmhelpers.core import hookenv
-
 from charmhelpers.contrib.ansible import apply_playbook
+from charmhelpers.core import hookenv
 from charmhelpers.core.hookenv import application_version_set
 from charmhelpers.core.hookenv import log
 from charmhelpers.core.hookenv import open_port

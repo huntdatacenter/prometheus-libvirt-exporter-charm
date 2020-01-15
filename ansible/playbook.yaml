@@ -18,7 +18,7 @@
         name: prometheus_client
         state: present
         executable: /usr/local/bin/pip3
-      register: prometheus_client
+      register: prom_c
       when: pip3_local.stat.exists
       tags: install
 
@@ -27,7 +27,7 @@
         name: prometheus_client
         state: present
         executable: /usr/bin/pip3
-      register: prometheus_client
+      register: prom_c
       when: pip3_local.stat.exists == false
       tags: install
 
@@ -35,21 +35,21 @@
       copy:
         src: libvirtmetadata.py
         dest: /usr/local/sbin/libvirtmetadata.py
-      register: libvirt_metadata
+      register: lm
       tags: install
 
     - name: Place task scheduler
       copy:
         src: scheduler.py
         dest: /usr/local/sbin/scheduler.py
-      register: task_scheduler
+      register: ts
       tags: install
 
     - name: Place libvirt exporter
       copy:
         src: libvirt_exporter.py
         dest: /usr/local/sbin/libvirt_exporter.py
-      register: libvirt_exporter
+      register: exporter
       tags: install
 
     - name: Render libvirt_exporter service template
@@ -57,7 +57,7 @@
         src: libvirt_exporter.service.j2
         dest: /etc/systemd/system/libvirt_exporter.service
         mode: 0644
-      register: libvirt_exporter_service
+      register: service
       tags: install
 
     - name: Restart and assure enabled libvirt_exporter
@@ -65,9 +65,9 @@
         name: libvirt_exporter
         state: restarted
         enabled: yes
-        daemon-reload: "{{ libvirt_exporter_service.changed }}"
+        daemon-reload: "{{ service.changed }}"
       register: service_restart
-      when: libvirt_exporter.changed or libvirt_metadata.changed or task_scheduler.changed or prometheus_client.changed or libvirt_exporter_service.changed
+      when: exporter.changed or lm.changed or ts.changed or prom_c.changed or service.changed
       tags: install
 
     - name: Start and enable libvirt_exporter
@@ -77,7 +77,6 @@
         enabled: yes
       when: service_restart is skipped
       tags: install
-
 
     - name: Stop and disable libvirt_exporter
       systemd:
