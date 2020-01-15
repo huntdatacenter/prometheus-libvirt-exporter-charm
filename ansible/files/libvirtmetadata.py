@@ -8,13 +8,13 @@ Includes VM info held by libvirt and statistics.
 """
 import re
 import uuid
+import xml.etree.ElementTree as ET
+from contextlib import contextmanager
+
 try:
     import libvirt
 except Exception:
     libvirt = None
-
-import xml.etree.ElementTree as ET
-from contextlib import contextmanager
 
 
 class LibvirtMetadata:
@@ -26,7 +26,8 @@ class LibvirtMetadata:
     """
 
     def __init__(self, xmlns='http://openstack.org/xmlns/libvirt/nova/1.0'):
-        self.uuidp = re.compile('[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}', re.I)
+        self.uuidp = re.compile(
+            '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}', re.I)
         self.STATS = 0
         self.FLAGS = libvirt.VIR_CONNECT_GET_ALL_DOMAINS_STATS_RUNNING
         self.LIBVIRT_INSTANCES = {}
@@ -100,7 +101,8 @@ class LibvirtMetadata:
             }
             data = self.retrieve_domain_metadata(domain)
             metadata['name'] = data.get('name', 'unknown')
-            metadata['project'] = data.get('owner', {}).get('project', {}).get('value', 'unknown')
+            metadata['project'] = data.get('owner', {}).get(
+                'project', {}).get('value', 'unknown')
         except Exception:
             pass
         return metadata
@@ -124,7 +126,8 @@ class LibvirtMetadata:
         with self.libvirt_connection() as conn:
             for domain in conn.listAllDomains():
                 instance = domain.name()
-                self.LIBVIRT_INSTANCES[instance] = self.load_instance_metadata(domain)
+                self.LIBVIRT_INSTANCES[instance] = self.load_instance_metadata(
+                    domain)
 
     def get_instance_metadata(self, instance, domain=None):
         """Get instance metadata."""
@@ -147,7 +150,8 @@ class LibvirtMetadata:
         pool, volume = ('', '')
         try:
             volume = source.get('name', '')
-            pool, volume = volume.split('/') if '/' in volume else ('unknown', volume)
+            pool, volume = volume.split(
+                '/') if '/' in volume else ('unknown', volume)
             volume = volume.replace('_disk', '').replace('volume-', '')
         except Exception:
             pass
@@ -224,14 +228,16 @@ class LibvirtMetadata:
             try:
                 for metaname, data in var_data.items():
                     splitter = ':' if ':' in metaname else '='
-                    submeta = dict([(*x.split(splitter),) for x in metaname.split(',')])
+                    submeta = dict([(*x.split(splitter),)
+                                    for x in metaname.split(',')])
                     for key, value in metadata.items():
                         submeta[key] = value
                     var_keys = sorted(submeta.keys())
                     var_items = [submeta[x] for x in var_keys]
                     for item, value in data.items():
                         # Formatting stats
-                        stats.append(['{}{}'.format(prefix, item), var_keys, var_items, value])
+                        stats.append(['{}{}'.format(prefix, item),
+                                      var_keys, var_items, value])
             except Exception:
                 pass
 
@@ -239,7 +245,8 @@ class LibvirtMetadata:
         var_keys = sorted(metadata.keys())
         var_items = [metadata[x] for x in var_keys]
         for item, value in stats_items.items():
-            stats.append(['{}{}'.format(prefix, item), var_keys, var_items, value])
+            stats.append(['{}{}'.format(prefix, item),
+                          var_keys, var_items, value])
         return stats
 
     def export_prom_stats(self, stats_items, instance, metadata=None, domain=None, prefix='libv_'):
@@ -254,7 +261,8 @@ class LibvirtMetadata:
             metadata['domain'] = instance
         if not isinstance(prefix, str):
             prefix = ''
-        metadata = ['{}="{}"'.format(key, metadata[key]) for key in sorted(metadata.keys())]
+        metadata = ['{}="{}"'.format(key, metadata[key])
+                    for key in sorted(metadata.keys())]
 
         # Extra variable items and format them (additional metadata)
         if 'variable' in stats_items:
@@ -263,13 +271,16 @@ class LibvirtMetadata:
                 for metaname, data in var_data.items():
                     if ':' in metaname:
                         metanames = metaname.split(',')
-                        metaitems = ['{}="{}"'.format(*mn.split(':')) for mn in metanames]
+                        metaitems = ['{}="{}"'.format(
+                            *mn.split(':')) for mn in metanames]
                     else:
                         metaitems = [metaname]
-                    metalabel = '{}{}{}'.format('{', ','.join(metadata + metaitems), '}')
+                    metalabel = '{}{}{}'.format(
+                        '{', ','.join(metadata + metaitems), '}')
                     for item, value in data.items():
                         # Formatting stats
-                        stats += '{}{}{} {}\n'.format(prefix, item, metalabel, value)
+                        stats += '{}{}{} {}\n'.format(prefix,
+                                                      item, metalabel, value)
             except Exception:
                 pass
 

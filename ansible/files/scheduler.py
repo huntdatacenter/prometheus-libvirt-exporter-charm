@@ -19,14 +19,13 @@ function `basic_fn`.
 
 Heartbeat print is run every 2 seconds.
 """
-import sys
-import uuid
-import signal
 import asyncio
-import functools
-import traceback
 import concurrent.futures
-
+import functools
+import signal
+import sys
+import traceback
+import uuid
 from datetime import datetime
 from datetime import timedelta
 
@@ -46,14 +45,16 @@ class Scheduler:
         # Loop is used for scheduling of tasks
         self.loop = asyncio.get_event_loop()
         # Pool is used for execution of tasks
-        self.__executor = concurrent.futures.ThreadPoolExecutor(max_workers=max_workers)
+        self.__executor = concurrent.futures.ThreadPoolExecutor(
+            max_workers=max_workers)
         self.__tasks = []
         self.exception_caught = False
         self.debug = False
 
         for s in (signal.SIGHUP, signal.SIGTERM, signal.SIGINT):
             self.loop.add_signal_handler(
-                s, lambda s=s: self.loop.create_task(self.__shutdown(self.loop, self.__executor, signal=s))
+                s, lambda s=s: self.loop.create_task(
+                    self.__shutdown(self.loop, self.__executor, signal=s))
             )
 
         self.loop.set_exception_handler(functools.partial(
@@ -73,7 +74,8 @@ class Scheduler:
                                     E.g. expect task to run every day, 5h after midnight
                                     periodic_delay={'hours': 5} and unit='day'
         """
-        self.__process_delay(periodic_delay)  # Test passed variable only, lambdas are resolved in each period
+        self.__process_delay(
+            periodic_delay)  # Test passed variable only, lambdas are resolved in each period
         self.__tasks.append(self.__periodic_callback(
             self.__executor, task, unit, run_now=run_now, periodic_delay=periodic_delay, round=round, args=args
         ))
@@ -96,7 +98,8 @@ class Scheduler:
         """
         loop = asyncio.get_event_loop()
         loglevel = 'INFO' if unit == 'day' else 'DEBUG'
-        async_sleep = self.__async_sleep if unit in ['second', 'minute', 'hour'] else self.__async_hard_sleep
+        async_sleep = self.__async_sleep if unit in [
+            'second', 'minute', 'hour'] else self.__async_hard_sleep
         # Compute time of next run and optimal delay to sleep
         next_run, delay = (
             datetime.now().replace(microsecond=0), 0
@@ -106,8 +109,10 @@ class Scheduler:
         while True:
             # Schedule the task
             task_id = 'period:{}:{}'.format(task.__name__, uuid.uuid4())
-            self.log('{} - task scheduled at: {}'.format(task_id, next_run), loglevel, source='TASK')
-            loop.call_later(delay, self.__callback, executor, task, task_id, next_run, args)
+            self.log('{} - task scheduled at: {}'.format(task_id,
+                                                         next_run), loglevel, source='TASK')
+            loop.call_later(delay, self.__callback, executor,
+                            task, task_id, next_run, args)
             # Wait the same period before scheduling next run
             await async_sleep(next_run, delay)
             next_run, delay = self.__get_wait_time(unit, round, periodic_delay)
@@ -145,10 +150,13 @@ class Scheduler:
         """
         loop = asyncio.get_event_loop()
         # Compute time of next run and optimal delay to sleep
-        next_run, delay = (datetime.now(), 0) if run_now else self.__get_wait_time(unit, round, delay)
+        next_run, delay = (datetime.now(), 0) if run_now else self.__get_wait_time(
+            unit, round, delay)
         task_id = 'delay:{}:{}'.format(task.__name__, uuid.uuid4())
-        self.log('{} - task scheduled at: {}'.format(task_id, next_run), 'DEBUG', source='TASK')
-        loop.call_later(delay, self.__callback, executor, task, task_id, next_run, args)
+        self.log('{} - task scheduled at: {}'.format(task_id,
+                                                     next_run), 'DEBUG', source='TASK')
+        loop.call_later(delay, self.__callback, executor,
+                        task, task_id, next_run, args)
 
     def __callback(self, executor, task, task_id, next_run, args):
         """Assign task to executor when called."""
@@ -159,7 +167,8 @@ class Scheduler:
                 await loop.run_in_executor(executor, task, *args)
         loop = asyncio.get_event_loop()
         if loop.is_running():
-            self.log('{} - task started'.format(task_id), 'DEBUG', source='TASK')
+            self.log('{} - task started'.format(task_id),
+                     'DEBUG', source='TASK')
             future = asyncio.run_coroutine_threadsafe(
                 assign_to_executor(executor, task, next_run, args),
                 loop
@@ -210,7 +219,8 @@ class Scheduler:
 
     def __process_delay(self, delay):
         if delay:
-            processed = dict((k, v()) if callable(v) else (k, v) for k, v in delay.items())
+            processed = dict((k, v()) if callable(v) else (k, v)
+                             for k, v in delay.items())
             return int(timedelta(**processed).total_seconds())
         return delay
 
@@ -245,7 +255,8 @@ class Scheduler:
         try:
             await asyncio.sleep(1)
             current = asyncio.Task.current_task(loop)
-            tasks = [t for t in asyncio.Task.all_tasks(loop) if t is not current]
+            tasks = [t for t in asyncio.Task.all_tasks(
+                loop) if t is not current]
             [task.cancel() for task in tasks]
             await asyncio.gather(*tasks, return_exceptions=True)
         except concurrent.futures.CancelledError:
@@ -253,7 +264,8 @@ class Scheduler:
             self.log('Task canceled on shutdown', 'DEBUG')
 
         executor.shutdown(wait=False)
-        self.log("Releasing {} threads from executor".format(len(executor._threads)))
+        self.log("Releasing {} threads from executor".format(
+            len(executor._threads)))
         for thread in executor._threads:
             try:
                 thread._tstate_lock.release()
@@ -284,10 +296,12 @@ class Scheduler:
         Handle task exceptions.
         """
         if future and future.cancelled():
-            self.log('{} - task cancelled'.format(task_id), 'DEBUG', source='TASK')
+            self.log('{} - task cancelled'.format(task_id),
+                     'DEBUG', source='TASK')
             return
         if future and future.exception():
-            self.log('{} - task raised an exception'.format(task_id), 'ERROR', source='TASK')
+            self.log('{} - task raised an exception'.format(task_id),
+                     'ERROR', source='TASK')
             if not self.debug:
                 return
             ex = future.exception()
@@ -295,7 +309,8 @@ class Scheduler:
                 etype=type(ex), value=ex, tb=ex.__traceback__
             )))
         else:
-            self.log('{} - task finished'.format(task_id), 'DEBUG', source='TASK')
+            self.log('{} - task finished'.format(task_id),
+                     'DEBUG', source='TASK')
 
     def run_concurrent(self, handle_exceptions=True, debug=False):
         """

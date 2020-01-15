@@ -36,10 +36,12 @@ Memory  :py:func:`node_exporters.libvirt.libvirt_only.get_mem_stats`
      - nanoseconds (cgroup stats)
 
 """
-import sys
 import argparse
-from prometheus_client.core import GaugeMetricFamily, REGISTRY
+import sys
+
 from prometheus_client import start_http_server
+from prometheus_client.core import REGISTRY
+from prometheus_client.core import GaugeMetricFamily
 
 try:
     from libvirtmetadata import LibvirtMetadata
@@ -134,7 +136,8 @@ def get_cpu_stats(stats):
 
     for i in range(items.get('cpu_max_count')):
         if recount_cpu_time:
-            items['cpu_total_utime'] += int(stats.get('vcpu.{}.time'.format(i), 0) / 1000)
+            items['cpu_total_utime'] += int(
+                stats.get('vcpu.{}.time'.format(i), 0) / 1000)
         vcpu_state = stats.get('vcpu.{}.state'.format(i), 0)
         items['cpu_use_count'] += 1 if vcpu_state == 1 else 0
         items['variable']['vcpu:{}'.format(i)] = {
@@ -242,9 +245,11 @@ def get_disk_io_stats(stats):
     }
 
     for i in range(items.get('disk_use_count', 0)):
-        items['disk_write_bytes'] += stats.get('block.{}.wr.bytes'.format(i), 0)
+        items['disk_write_bytes'] += stats.get(
+            'block.{}.wr.bytes'.format(i), 0)
         items['disk_read_bytes'] += stats.get('block.{}.rd.bytes'.format(i), 0)
-        items['disk_write_count'] += stats.get('block.{}.wr.times'.format(i), 0)
+        items['disk_write_count'] += stats.get(
+            'block.{}.wr.times'.format(i), 0)
         items['disk_read_count'] += stats.get('block.{}.rd.times'.format(i), 0)
         disk_name = stats.get('block.{}.name'.format(i), None)
         if disk_name:
@@ -314,11 +319,16 @@ def prom_stats(libv_meta, cc):
             for domain, stats in conn.getAllDomainStats(stats=libv_meta.STATS, flags=libv_meta.FLAGS):
                 try:
                     instance = domain.name()
-                    metadata = libv_meta.get_instance_metadata(instance, domain)
-                    all_stats.extend(libv_meta.export(get_cpu_stats(stats), instance, metadata=metadata))
-                    all_stats.extend(libv_meta.export(get_net_stats(stats), instance, metadata=metadata))
-                    all_stats.extend(libv_meta.export(get_disk_io_stats(stats), instance, metadata=metadata))
-                    all_stats.extend(libv_meta.export(get_mem_stats(domain, stats), instance, metadata=metadata))
+                    metadata = libv_meta.get_instance_metadata(
+                        instance, domain)
+                    all_stats.extend(libv_meta.export(
+                        get_cpu_stats(stats), instance, metadata=metadata))
+                    all_stats.extend(libv_meta.export(
+                        get_net_stats(stats), instance, metadata=metadata))
+                    all_stats.extend(libv_meta.export(
+                        get_disk_io_stats(stats), instance, metadata=metadata))
+                    all_stats.extend(libv_meta.export(get_mem_stats(
+                        domain, stats), instance, metadata=metadata))
                 except Exception:
                     pass
     except Exception:
@@ -347,17 +357,20 @@ def main(args):
     except Exception:
         pass
 
-    cc = CustomCollector('Libvirt instance stats', helper_name='libvirt', libv_meta=libv_meta)
+    cc = CustomCollector('Libvirt instance stats',
+                         helper_name='libvirt', libv_meta=libv_meta)
     REGISTRY.register(cc)
     start_http_server(args.port, addr=args.addr)
-    scheduler.log('Exposing metrics at: http://{}:{}/metrics'.format(args.addr, args.port))
+    scheduler.log(
+        'Exposing metrics at: http://{}:{}/metrics'.format(args.addr, args.port))
 
     # Every 'wait_time' seconds
     scheduler.add_periodic_task(
         prom_stats, 'second', round=args.wait_time, args=(libv_meta, cc)
     )
     # Every 20 minutes
-    scheduler.add_periodic_task(libv_meta.load_libvirt_metadata, 'minute', round=20)
+    scheduler.add_periodic_task(
+        libv_meta.load_libvirt_metadata, 'minute', round=20)
 
     scheduler.run_concurrent(debug=args.debug)
 
@@ -365,7 +378,8 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Libvirt textfile exporter')
     parser.set_defaults(func=main)
-    subparsers = parser.add_subparsers(dest='action', help='Choose an alternative action (optional)')
+    subparsers = parser.add_subparsers(
+        dest='action', help='Choose an alternative action (optional)')
 
     parser.add_argument(
         '-p', '--port', dest='port', default=9121, type=int,
@@ -379,8 +393,10 @@ if __name__ == '__main__':
         '-t', '--wait-time', dest='wait_time', default=2, type=int,
         help='Time to sleep between measures [2-30]'
     )
-    parser.add_argument('--debug', dest='debug', action='store_true', help='Debug messages')
-    subparsers.add_parser('shell', help='Run iPython shell').set_defaults(func=shell)
+    parser.add_argument('--debug', dest='debug',
+                        action='store_true', help='Debug messages')
+    subparsers.add_parser(
+        'shell', help='Run iPython shell').set_defaults(func=shell)
 
     args = parser.parse_args()
     args.func(args)
