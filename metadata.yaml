@@ -2,7 +2,7 @@ name: prometheus-libvirt-exporter
 summary: Prometheus Libvirt Exporter
 maintainer: Matus Kosut <matus.kosut@ntnu.no>
 description: |
-  Exporting prometheus metrics from libvirt with openstack metadata.
+  Exporting prometheus metrics from Libvirt with Openstack metadata.
 tags:
   - monitoring
   - prometheus

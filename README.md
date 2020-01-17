@@ -1,6 +1,6 @@
-# Prometheus-libvirt-exporter Charm
+# Prometheus Libvirt Exporter Charm
 
-Reactive subordinate juju charm providing prometheus-libvirt-exporter. Exporter uses openstack metadata and passes these metadata linked to prometheus metrics.
+Reactive subordinate Juju charm providing prometheus-libvirt-exporter. Exporter uses Openstack metadata and passes these metadata linked to Libvirt usage metrics.
 
 # Overview
 

@@ -1,4 +1,4 @@
-repo: https://github.com/huntdatacenter/prometheus-node-exporter-charm.git
+repo: https://github.com/huntdatacenter/prometheus-libvirt-exporter-charm.git
 includes:
   - 'layer:basic'
   - 'interface:http'
