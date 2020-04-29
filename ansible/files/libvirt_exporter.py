@@ -329,6 +329,8 @@ def prom_stats(libv_meta, cc):
                         get_disk_io_stats(stats), instance, metadata=metadata))
                     all_stats.extend(libv_meta.export(get_mem_stats(
                         domain, stats), instance, metadata=metadata))
+                    all_stats.extend(libv_meta.export(libv_meta.get_cpu_meta(
+                        domain), instance, metadata=metadata))
                 except Exception:
                     pass
     except Exception:

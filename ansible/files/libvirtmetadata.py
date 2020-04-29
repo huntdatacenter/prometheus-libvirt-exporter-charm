@@ -210,6 +210,23 @@ class LibvirtMetadata:
 
         return rbd_images
 
+    def get_cpu_meta(self, domain):
+        items = {}
+        try:
+            domain_config = ET.fromstring(domain.XMLDesc())
+            f_elems = domain_config.find('.//features').getchildren()
+        except Exception:
+            f_elems = []
+        items['variable'] = {}
+        for feature in f_elems:
+            try:
+                items['variable']['feature:{}'.format(feature.tag)] = {
+                    'vm_cpu_features': 1
+                }
+            except Exception:
+                pass
+        return items
+
     def export(self, stats_items, instance, metadata=None, domain=None, prefix='libv_'):
         stats = []
         if not stats_items or not isinstance(stats_items, dict):
