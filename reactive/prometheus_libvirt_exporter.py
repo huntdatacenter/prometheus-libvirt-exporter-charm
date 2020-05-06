@@ -71,8 +71,12 @@ def start():
 @hook('upgrade-charm')
 def upgrade_charm():
     remove_state('prometheus-libvirt-exporter.version')
-    remove_state('prometheus-libvirt-exporter.installed')
-    remove_state('prometheus-libvirt-exporter.configured')
+    apply_playbook(
+        playbook='ansible/playbook.yaml',
+        extra_vars=dict(
+            exp_port=config.get('port'),
+            exp_host=get_ip()[0],
+        ))
     status_set('active', 'ready')
 
 

@@ -217,15 +217,30 @@ class LibvirtMetadata:
             f_elems = domain_config.find('.//cpu').findall('.//feature')
         except Exception:
             f_elems = []
+        try:
+            model_el = domain_config.find('.//cpu').find('.//model')
+            model = {
+                'fallback': 1 if (model_el.get('fallback') == 'allow') else 0,
+                'name': model_el.text
+            }
+        except Exception:
+            model = {}
         items['variable'] = {}
         for feature in f_elems:
             try:
-                required = 1 if feature.get('policy') == 'require' else 0
+                required = 1 if (feature.get('policy') == 'require') else 0
+            except Exception:
+                required = 1
+            try:
                 items['variable']['feature:{}'.format(feature.get('name'))] = {
                     'vm_cpu_feature': required
                 }
             except Exception:
                 pass
+        if model:
+            items['variable']['model:{}'.format(model.get('name'))] = {
+                'vm_cpu_model': model.get('fallback')
+            }
         return items
 
     def export(self, stats_items, instance, metadata=None, domain=None, prefix='libv_'):
