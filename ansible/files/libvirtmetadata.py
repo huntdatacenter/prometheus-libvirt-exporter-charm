@@ -237,7 +237,7 @@ class LibvirtMetadata:
                 }
             except Exception:
                 pass
-        if model:
+        if model and model.get('name'):
             items['variable']['model:{}'.format(model.get('name'))] = {
                 'vm_cpu_model': model.get('fallback')
             }
