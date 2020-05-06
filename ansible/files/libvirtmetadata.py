@@ -214,14 +214,15 @@ class LibvirtMetadata:
         items = {}
         try:
             domain_config = ET.fromstring(domain.XMLDesc())
-            f_elems = domain_config.find('.//features').getchildren()
+            f_elems = domain_config.find('.//cpu').findall('.//feature')
         except Exception:
             f_elems = []
         items['variable'] = {}
         for feature in f_elems:
             try:
-                items['variable']['feature:{}'.format(feature.tag)] = {
-                    'vm_cpu_features': 1
+                required = 1 if feature.get('policy') == 'require' else 0
+                items['variable']['feature:{}'.format(feature.get('name'))] = {
+                    'vm_cpu_feature': required
                 }
             except Exception:
                 pass
