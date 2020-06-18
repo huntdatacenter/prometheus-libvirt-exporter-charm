@@ -345,7 +345,8 @@ def prom_stats(libv_meta, cc):
                         pass
                     if state == libv_meta.DOMAIN_RUNNING and control_time < 300 and control_time >= 0:
                         # Ignore if domain not running or busy/locked for more than 5 min
-                        stat_list = conn.domainListGetStats([dom], stats=libv_meta.STATS, flags=libv_meta.FLAGS)
+                        stat_list = conn.domainListGetStats(
+                            [dom], stats=libv_meta.STATS, flags=libv_meta.FLAGS)
                 except Exception:
                     stat_list = []
                 for domain, stats in stat_list:
