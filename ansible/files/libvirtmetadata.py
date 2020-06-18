@@ -30,6 +30,8 @@ class LibvirtMetadata:
             '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}', re.I)
         self.STATS = 0
         self.FLAGS = libvirt.VIR_CONNECT_GET_ALL_DOMAINS_STATS_RUNNING
+        self.LIST_DOMAINS_RUNNING = libvirt.VIR_CONNECT_LIST_DOMAINS_RUNNING
+        self.DOMAIN_RUNNING = libvirt.VIR_DOMAIN_RUNNING
         self.LIBVIRT_INSTANCES = {}
         self.xmlns = xmlns
         self.status = -1  # uninitialized

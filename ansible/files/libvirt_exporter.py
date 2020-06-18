@@ -316,23 +316,52 @@ def prom_stats(libv_meta, cc):
 
     try:
         with libv_meta.libvirt_connection() as conn:
-            for domain, stats in conn.getAllDomainStats(stats=libv_meta.STATS, flags=libv_meta.FLAGS):
+            # all_domain_stats = conn.getAllDomainStats(stats=libv_meta.STATS, flags=libv_meta.FLAGS)
+            # for domain, stats in all_domain_stats:
+            for dom in conn.listAllDomains(flags=libv_meta.LIST_DOMAINS_RUNNING):
+                stat_list = []
                 try:
-                    instance = domain.name()
-                    metadata = libv_meta.get_instance_metadata(
-                        instance, domain)
-                    all_stats.extend(libv_meta.export(
-                        get_cpu_stats(stats), instance, metadata=metadata))
-                    all_stats.extend(libv_meta.export(
-                        get_net_stats(stats), instance, metadata=metadata))
-                    all_stats.extend(libv_meta.export(
-                        get_disk_io_stats(stats), instance, metadata=metadata))
-                    all_stats.extend(libv_meta.export(get_mem_stats(
-                        domain, stats), instance, metadata=metadata))
-                    all_stats.extend(libv_meta.export(libv_meta.get_cpu_meta(
-                        domain), instance, metadata=metadata))
+                    state = int(dom.state()[0])
                 except Exception:
-                    pass
+                    state = 0
+                try:
+                    control_state = int(dom.controlInfo()[0])
+                except Exception:
+                    control_state = 4
+                try:
+                    control_time = int(dom.controlInfo()[-1] / 1000)
+                except Exception:
+                    control_time = -1
+                try:
+                    instance = dom.name()
+                    metadata = libv_meta.get_instance_metadata(instance, dom)
+                    try:
+                        all_stats.extend(libv_meta.export({
+                            'vm_control_time': control_time,
+                            'vm_control_state': control_state,
+                            'vm_state': state
+                        }, instance, metadata=metadata))
+                    except Exception:
+                        pass
+                    if state == libv_meta.DOMAIN_RUNNING and control_time < 300 and control_time >= 0:
+                        # Ignore if domain not running or busy/locked for more than 5 min
+                        stat_list = conn.domainListGetStats([dom], stats=libv_meta.STATS, flags=libv_meta.FLAGS)
+                except Exception:
+                    stat_list = []
+                for domain, stats in stat_list:
+                    try:
+                        all_stats.extend(libv_meta.export(
+                            get_cpu_stats(stats), instance, metadata=metadata))
+                        all_stats.extend(libv_meta.export(
+                            get_net_stats(stats), instance, metadata=metadata))
+                        all_stats.extend(libv_meta.export(
+                            get_disk_io_stats(stats), instance, metadata=metadata))
+                        all_stats.extend(libv_meta.export(get_mem_stats(
+                            domain, stats), instance, metadata=metadata))
+                        all_stats.extend(libv_meta.export(libv_meta.get_cpu_meta(
+                            domain), instance, metadata=metadata))
+                    except Exception:
+                        pass
     except Exception:
         libv_meta.status = 1  # error
 
