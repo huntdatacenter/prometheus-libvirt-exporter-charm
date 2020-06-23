@@ -5,7 +5,8 @@ includes:
   - 'interface:prometheus-manual'
 options:
   basic:
-    python_packages: ['ansible']
+    packages: ['build-essential', 'python3-dev']
+    # python_packages: ['ansible']
     use_venv: true
     include_system_packages: true
 exclude:
