@@ -1,2 +1,4 @@
-prometheus-client==0.8.0
-ansible==2.9.10
+prometheus-client<=0.8.0
+ansible<=2.9.10
+Jinja2<=2.10.1
+PyYAML<=5.2
