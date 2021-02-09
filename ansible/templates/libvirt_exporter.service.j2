@@ -1,6 +1,7 @@
 [Unit]
 Description=Libvirt Node Exporter
-After=syslog.target
+After=syslog.target network.target libvirt-bin.service
+Requires=libvirt-bin.service
 
 [Service]
 User=root
