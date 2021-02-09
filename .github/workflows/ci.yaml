@@ -11,8 +11,9 @@ jobs:
       - uses: actions/checkout@v1
       - uses: actions/setup-python@v1
         with:
-          python-version: '3.x'
-      - run: pip install tox
+          python-version: "3.x"
+      - run: python3 -m pip install --user --upgrade "pip<=19.9.9"
+      - run: python3 -m pip install --user tox
       - name: Run linter
         run: make lint
   build:
@@ -21,8 +22,9 @@ jobs:
       - uses: actions/checkout@v1
       - uses: actions/setup-python@v1
         with:
-          python-version: '3.7.x'
-      - run: pip install tox
+          python-version: "3.7.x"
+      - run: python3 -m pip install --user --upgrade "pip<=19.9.9"
+      - run: python3 -m pip install --user tox
       - name: Build charm
         run: make build
       - name: Upload charm artifact
@@ -47,8 +49,9 @@ jobs:
       - uses: actions/checkout@v1
       - uses: actions/setup-python@v1
         with:
-          python-version: '3.7.x'
-      - run: pip install tox
+          python-version: "3.7.x"
+      - run: python3 -m pip install --user --upgrade "pip<=19.9.9"
+      - run: python3 -m pip install --user tox
       - name: Download charm artifact
         uses: actions/download-artifact@v1
         with:
