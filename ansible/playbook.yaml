@@ -31,24 +31,31 @@
       when: pip3_local.stat.exists == false
       tags: install
 
+    - name: Create libvirt exporter directory
+      file:
+        path: /opt/libvirt_exporter
+        state: directory
+        mode: '0755'
+      tags: install
+
     - name: Place libvirt metadata manager
       copy:
         src: libvirtmetadata.py
-        dest: /usr/local/sbin/libvirtmetadata.py
+        dest: /opt/libvirt_exporter/libvirtmetadata.py
       register: lm
       tags: install
 
     - name: Place task scheduler
       copy:
         src: scheduler.py
-        dest: /usr/local/sbin/scheduler.py
+        dest: /opt/libvirt_exporter/scheduler.py
       register: ts
       tags: install
 
     - name: Place libvirt exporter
       copy:
         src: libvirt_exporter.py
-        dest: /usr/local/sbin/libvirt_exporter.py
+        dest: /opt/libvirt_exporter/libvirt_exporter.py
       register: exporter
       tags: install
 
