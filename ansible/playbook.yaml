@@ -75,6 +75,7 @@
         daemon-reload: "{{ service.changed }}"
       register: service_restart
       when: exporter.changed or lm.changed or ts.changed or prom_c.changed or service.changed
+      ignore_errors: yes
       tags: install
 
     - name: Start and enable libvirt_exporter
@@ -83,11 +84,20 @@
         state: started
         enabled: yes
       when: service_restart is skipped
+      ignore_errors: yes
       tags: install
+
+    - name: Assure started and enabled libvirt_exporter
+      systemd:
+        name: libvirt_exporter
+        state: started
+        enabled: yes
+      tags: never, start
 
     - name: Stop and disable libvirt_exporter
       systemd:
         name: libvirt_exporter
         state: stopped
         enabled: no
+      ignore_errors: yes
       tags: never, uninstall

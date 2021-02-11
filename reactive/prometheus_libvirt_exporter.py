@@ -9,10 +9,10 @@ from charmhelpers.core.hookenv import status_set
 from charmhelpers.core.hookenv import unit_private_ip
 from charms.reactive import endpoint_from_flag
 from charms.reactive import hook
-from charms.reactive import remove_state
-from charms.reactive import set_state
 from charms.reactive import when
 from charms.reactive import when_not
+from charms.reactive.flags import clear_flag
+from charms.reactive.flags import set_flag
 
 config = hookenv.config()
 
@@ -27,7 +27,7 @@ def set_version():
                     application_version_set(commit_short)
     except IOError:
         log('Cannot set application version. Missing repo-info.')
-    set_state('prometheus-libvirt-exporter.version')
+    set_flag('prometheus-libvirt-exporter.version')
 
 
 @when('nova-compute.joined')
@@ -41,7 +41,7 @@ def install_deps():
             exp_host=get_ip()[0],
         ))
     status_set('active', 'ready')
-    set_state('prometheus-libvirt-exporter.installed')
+    set_flag('prometheus-libvirt-exporter.installed')
 
 
 # Hooks
@@ -70,7 +70,7 @@ def start():
 
 @hook('upgrade-charm')
 def upgrade_charm():
-    remove_state('prometheus-libvirt-exporter.version')
+    clear_flag('prometheus-libvirt-exporter.version')
     apply_playbook(
         playbook='ansible/playbook.yaml',
         extra_vars=dict(
@@ -78,6 +78,23 @@ def upgrade_charm():
             exp_host=get_ip()[0],
         ))
     status_set('active', 'ready')
+
+
+@hook('update-status')
+def update_status():
+    try:
+        apply_playbook(
+            playbook='ansible/playbook.yaml',
+            tags=['start'],
+            extra_vars=dict(
+                exp_port=config.get('port'),
+                exp_host=get_ip()[0],
+            ))
+    except Exception:
+        log('Exporter service failed to start. Need libvirt-bin service.')
+        status_set('active', 'Service failed to start')
+    else:
+        status_set('active', 'ready')
 
 
 @when('prometheus-target.available')
