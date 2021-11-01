@@ -3,7 +3,7 @@ applications:
   prometheus-libvirt-exporter:
     charm: cs:~huntdatacenter/prometheus-libvirt-exporter-13
     options:
-      libvirtservice: "libvirtd.service",
+      libvirtservice: "libvirtd.service"
   ubuntu:
     charm: cs:ubuntu
     num_units: 1
