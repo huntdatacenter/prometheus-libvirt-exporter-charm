@@ -1,0 +1,12 @@
+series: focal
+applications:
+  prometheus-libvirt-exporter:
+    charm: cs:~huntdatacenter/prometheus-libvirt-exporter-13
+    options:
+      libvirtservice: "libvirtd.service",
+  ubuntu:
+    charm: cs:ubuntu
+    num_units: 1
+relations:
+- - ubuntu:juju-info
+  - prometheus-libvirt-exporter:nova-compute

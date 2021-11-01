@@ -5,7 +5,7 @@ includes:
   - 'interface:prometheus-manual'
 options:
   basic:
-    packages: ['libffi-dev', 'libssl-dev']
+    packages: ['libffi-dev', 'libssl-dev', 'python3-testresources']
     # python_packages: ['ansible']
     use_venv: true
     include_system_packages: true

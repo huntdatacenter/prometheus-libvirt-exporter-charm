@@ -39,6 +39,7 @@ def install_deps():
         extra_vars=dict(
             exp_port=config.get('port'),
             exp_host=get_ip()[0],
+            libvirtservice=config.get('libvirtservice'),
         ))
     status_set('active', 'ready')
     set_flag('prometheus-libvirt-exporter.installed')
@@ -53,6 +54,7 @@ def stop():
         extra_vars=dict(
             exp_port=config.get('port'),
             exp_host=get_ip()[0],
+            libvirtservice=config.get('libvirtservice'),
         ))
 
 
@@ -64,6 +66,7 @@ def start():
         extra_vars=dict(
             exp_port=config.get('port'),
             exp_host=get_ip()[0],
+            libvirtservice=config.get('libvirtservice'),
         ))
     status_set('active', 'ready')
 
@@ -76,6 +79,7 @@ def upgrade_charm():
         extra_vars=dict(
             exp_port=config.get('port'),
             exp_host=get_ip()[0],
+            libvirtservice=config.get('libvirtservice'),
         ))
     status_set('active', 'ready')
 
@@ -89,6 +93,7 @@ def update_status():
             extra_vars=dict(
                 exp_port=config.get('port'),
                 exp_host=get_ip()[0],
+                libvirtservice=config.get('libvirtservice'),
             ))
     except Exception:
         log('Exporter service failed to start. Need libvirt-bin service.')
