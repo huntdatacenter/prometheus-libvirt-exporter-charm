@@ -15,7 +15,7 @@
 
     - name: Install prometheus_client
       pip:
-        name: prometheus_client
+        name: prometheus_client<=0.12.0
         state: present
         executable: /usr/local/bin/pip3
       register: prom_c
@@ -24,7 +24,7 @@
 
     - name: Install prometheus_client
       pip:
-        name: prometheus_client
+        name: prometheus_client<=0.12.0
         state: present
         executable: /usr/bin/pip3
       register: prom_c
@@ -43,6 +43,13 @@
         src: libvirtmetadata.py
         dest: /opt/libvirt_exporter/libvirtmetadata.py
       register: lm
+      tags: install
+
+    - name: Place pci metadata manager
+      copy:
+        src: pcimetadata.py
+        dest: /opt/libvirt_exporter/pcimetadata.py
+      register: pm
       tags: install
 
     - name: Place task scheduler
@@ -74,7 +81,7 @@
         enabled: yes
         daemon-reload: "{{ service.changed }}"
       register: service_restart
-      when: exporter.changed or lm.changed or ts.changed or prom_c.changed or service.changed
+      when: exporter.changed or lm.changed or pm.changed or ts.changed or prom_c.changed or service.changed
       ignore_errors: yes
       tags: install
 

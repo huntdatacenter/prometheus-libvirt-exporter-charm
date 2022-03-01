@@ -10,6 +10,7 @@ import re
 import uuid
 import xml.etree.ElementTree as ET
 from contextlib import contextmanager
+from pcimetadata import get_pci_devices
 
 try:
     import libvirt
@@ -134,6 +135,8 @@ class LibvirtMetadata:
     def get_instance_metadata(self, instance, domain=None):
         """Get instance metadata."""
         try:
+            if instance is None:
+                return {}
             if instance in self.LIBVIRT_INSTANCES:
                 return self.LIBVIRT_INSTANCES.get(instance)
             else:
@@ -245,14 +248,123 @@ class LibvirtMetadata:
             }
         return items
 
+    def get_gpu_devices(self, domain):
+        gpu_devices = {}
+        try:
+            domain_config = ET.fromstring(domain.XMLDesc())
+            for item in domain_config.findall('.//hostdev'):
+                try:
+                    gpu_info = self._load_xml_tree(item)
+                    alias = gpu_info.get('alias', {}).get('name', 'hostdev')
+                    address = gpu_info.get('source', {}).get('address', {})
+                    gpu_device = dict(
+                        type=gpu_info.get('type'),
+                        alias=alias,
+                        driver=gpu_info.get('driver', {}).get('name', 'unknown'),
+                        bus=address.get('bus', 'unknown'),
+                        slot=address.get('slot', 'unknown'),
+                        function=address.get('function', 'unknown'),
+                    )
+                    key = '{}:{}.{}'.format(
+                        address.get('bus')[2:],
+                        address.get('slot')[2:],
+                        address.get('function')[2:])
+                    gpu_devices[key] = gpu_device
+                except Exception:
+                    pass
+        except Exception:
+            pass
+        return gpu_devices
+
+    def get_gpu_device_meta(self):
+        items = {}
+        items['variable'] = {}
+
+        gpus_allocated = {}
+        with self.libvirt_connection() as conn:
+            for domain in conn.listAllDomains():
+                gpus_allocated.update(self.get_gpu_devices(domain))
+        pci_devices = get_pci_devices(resolve=False)
+
+        for key, device in pci_devices.items():
+            try:
+                value = 0 if key in gpus_allocated else 1
+                metrics = ["function", "bus", "slot", "product_id", "vendor_id"]
+                meta = ','.join(['{}={}'.format(key, value) for key, value in device.items() if (
+                    value and key in metrics)])
+                if meta not in items['variable']:
+                    items['variable'][meta] = dict(gpu_device=value)
+                else:
+                    items['variable'][meta].update(gpu_device=value)
+            except Exception:
+                pass
+
+        for key, device in pci_devices.items():
+            try:
+                value = 0 if key in gpus_allocated else 1
+                allocated = 1 if key in gpus_allocated else 0
+                metrics = ["product_id", "vendor_id"]
+                meta = ','.join(['{}={}'.format(key, value) for key, value in device.items() if (
+                    value and key in metrics)])
+                if meta not in items['variable']:
+                    items['variable'][meta] = dict(gpus_free_total=value, gpus_used_total=allocated)
+                else:
+                    items['variable'][meta]['gpus_free_total'] += value
+                    items['variable'][meta]['gpus_used_total'] += allocated
+            except Exception:
+                pass
+
+        return items
+
+    def get_gpu_meta(self, domain):
+        items = {}
+        items['variable'] = {}
+
+        gpu_devices = self.get_gpu_devices(domain)
+        pci_devices = get_pci_devices(resolve=False)
+        metrics = ["function", "bus", "slot", "product_id", "vendor_id"]
+
+        for key, gpu_info in gpu_devices.items():
+            try:
+                meta_values = ['{}={}'.format(key, value) for key, value in gpu_info.items() if (
+                    value and key in metrics)]
+
+                if pci_devices.get(key):
+                    device = pci_devices.get(key, {})
+                    for index in ['product_id', 'vendor_id']:
+                        meta_values.append('{}={}'.format(index, device.get(index, 'unknown')))
+
+                meta = ','.join(meta_values)
+                if meta not in items['variable']:
+                    items['variable'][meta] = dict(gpu_allocation=1)
+                elif 'gpu_allocation' not in items['variable'][meta]:
+                    items['variable'][meta].update(gpu_allocation=1)
+                else:
+                    # If not unique (e.g. disabled bus/slot/func)
+                    items['variable'][meta]['gpu_allocation'] += 1
+
+                gpus_total = ','.join(['{}={}'.format(key, value) for key, value in dict(
+                    # type=gpu_info.get('type'),
+                    # driver=gpu_info.get('driver', 'unknown'),
+                    product_id=pci_devices.get(key, {}).get('product_id', 'unknown'),
+                    vendor_id=pci_devices.get(key, {}).get('vendor_id', 'unknown'),
+                ).items() if value])
+                if gpus_total not in items['variable']:
+                    items['variable'][gpus_total] = {'vm_gpus_total': 0}
+                items['variable'][gpus_total]['vm_gpus_total'] += 1
+            except Exception:
+                pass
+
+        return items
+
     def export(self, stats_items, instance, metadata=None, domain=None, prefix='libv_'):
         stats = []
         if not stats_items or not isinstance(stats_items, dict):
             return stats
 
-        if not metadata or not isinstance(metadata, dict):
+        if instance and not metadata or not isinstance(metadata, dict):
             metadata = self.get_instance_metadata(instance, domain=domain)
-        if 'domain' not in metadata:
+        if instance and 'domain' not in metadata:
             metadata['domain'] = instance
         if not isinstance(prefix, str):
             prefix = ''
@@ -290,9 +402,9 @@ class LibvirtMetadata:
         if not stats_items or not isinstance(stats_items, dict):
             return stats
 
-        if not metadata or not isinstance(metadata, dict):
+        if instance and not metadata or not isinstance(metadata, dict):
             metadata = self.get_instance_metadata(instance, domain=domain)
-        if 'domain' not in metadata:
+        if instance and 'domain' not in metadata:
             metadata['domain'] = instance
         if not isinstance(prefix, str):
             prefix = ''
