@@ -5,8 +5,9 @@ includes:
   - 'interface:prometheus-manual'
 options:
   basic:
-    packages: ['libffi-dev', 'libssl-dev', 'python3-testresources']
-    # python_packages: ['ansible']
+    packages: ['libffi-dev', 'libssl-dev', 'python3-testresources', 'python3-pkg-resources']
+    # python_packages: ['ansible<=2.9.10', 'charms.reactive==1.5.0', 'charmhelpers==1.1.0']
+    python_packages: ["ansible", "charmhelpers", "charms.reactive"]
     use_venv: true
     include_system_packages: true
 exclude:

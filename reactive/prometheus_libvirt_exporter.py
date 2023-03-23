@@ -1,18 +1,18 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-from charmhelpers.contrib.ansible import apply_playbook
-from charmhelpers.core import hookenv
-from charmhelpers.core.hookenv import application_version_set
-from charmhelpers.core.hookenv import log
-from charmhelpers.core.hookenv import open_port
-from charmhelpers.core.hookenv import status_set
-from charmhelpers.core.hookenv import unit_private_ip
+from extensions.core import hookenv
+from extensions.core.hookenv import application_version_set
+from extensions.core.hookenv import log
+from extensions.core.hookenv import open_port
+from extensions.core.hookenv import status_set
+from extensions.core.hookenv import unit_private_ip
 from charms.reactive import endpoint_from_flag
 from charms.reactive import hook
 from charms.reactive import when
 from charms.reactive import when_not
 from charms.reactive.flags import clear_flag
 from charms.reactive.flags import set_flag
+from extensions.ansible import apply_playbook, install_ansible_support
 
 config = hookenv.config()
 
@@ -34,6 +34,7 @@ def set_version():
 @when_not('prometheus-libvirt-exporter.installed')
 def install_deps():
     status_set('maintenance', 'installing dependencies')
+    install_ansible_support()
     apply_playbook(
         playbook='ansible/playbook.yaml',
         extra_vars=dict(
@@ -60,6 +61,7 @@ def stop():
 
 @hook('start')
 def start():
+    install_ansible_support()
     apply_playbook(
         playbook='ansible/playbook.yaml',
         tags=['install'],

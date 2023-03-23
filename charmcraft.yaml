@@ -1,0 +1,38 @@
+type: charm
+parts:
+  charm:
+    build-packages:
+      - tox
+      - libffi-dev
+      - libssl-dev
+      - python3-pip
+      - python3-dev
+      - python3-wheel
+      - python3-venv
+      - python3-testresources
+      - python3-pkg-resources
+    # source: .
+    # plugin: reactive
+    # build-snaps: [charm]
+    prime:
+      - README.md
+      - copyright
+      - config.yaml
+      - layer.yaml
+      - metadata.yaml
+      - src/charm.py
+      - reactive/prometheus_libvirt_exporter.py
+      - ansible
+      - hooks
+      - lib
+      - requirements-dev.txt
+      - requirements.txt
+bases:
+  - build-on:
+      - name: "ubuntu"
+        channel: "22.04"
+    run-on:
+      - name: "ubuntu"
+        channel: "20.04"
+      - name: "ubuntu"
+        channel: "22.04"

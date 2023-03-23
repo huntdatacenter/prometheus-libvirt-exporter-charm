@@ -1,0 +1,12 @@
+series: jammy
+applications:
+  prometheus-libvirt-exporter:
+    charm: huntdatacenter-prometheus-libvirt-exporter
+    options:
+      libvirtservice: "libvirtd.service"
+  ubuntu:
+    charm: huntdatacenter-ubuntu-lite
+    num_units: 1
+relations:
+- - ubuntu:juju-info
+  - prometheus-libvirt-exporter:nova-compute

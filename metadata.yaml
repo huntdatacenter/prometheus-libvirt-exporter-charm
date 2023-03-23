@@ -8,9 +8,8 @@ tags:
   - prometheus
 subordinate: true
 series:
-  - xenial
-  - bionic
   - focal
+  - jammy
 requires:
   nova-compute:
     interface: juju-info
