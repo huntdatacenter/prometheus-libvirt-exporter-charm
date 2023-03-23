@@ -15,7 +15,7 @@ options:
     description: |
       Debug logging for exporter.
   libvirtservice:
-    default: "libvirt-bin.service"
+    default: "libvirt-guests.service"
     type: string
     description: |
-      Name of libvirt service - systemd dependency (focal: libvirtd.service)
+      Name of libvirt service - systemd dependency (example: libvirtd.service)
