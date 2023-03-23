@@ -25,6 +25,7 @@ jobs:
           python-version: "3.7.x"
       - run: python3 -m pip install --upgrade "pip<=19.9.9"
       - run: python3 -m pip install tox
+      - run: python3 -m pip install charm-tools
       - name: Build charm
         run: make build
       - name: Upload charm artifact

@@ -363,6 +363,15 @@ def prom_stats(libv_meta, cc):
                             domain), instance, metadata=metadata))
                     except Exception:
                         pass
+                    try:
+                        all_stats.extend(libv_meta.export(libv_meta.get_gpu_meta(
+                            domain), instance, metadata=metadata, prefix='libv_'))
+                    except Exception:
+                        pass
+            try:
+                all_stats.extend(libv_meta.export(libv_meta.get_gpu_device_meta(), None, prefix='libv_'))
+            except Exception as e:
+                print(e)
     except Exception:
         libv_meta.status = 1  # error
 
