@@ -13,8 +13,8 @@ function `basic_fn`.
     from scheduler import Scheduler
 
     scheduler = Scheduler()
-    scheduler.add(basic_fn, 'hour')
-    scheduler.add(print, 'second', round=2, args=('heartbeat',))
+    scheduler.add_delayed_task(basic_fn, 'hour')
+    scheduler.add_periodic_task(print, 'second', round=2, args=('heartbeat',))
     scheduler.run_concurrent()
 
 Heartbeat print is run every 2 seconds.
@@ -254,9 +254,9 @@ class Scheduler:
         self.log("Stopping scheduled tasks", "WARN")
         try:
             await asyncio.sleep(1)
-            current = asyncio.Task.current_task(loop)
-            tasks = [t for t in asyncio.Task.all_tasks(
-                loop) if t is not current]
+            current = asyncio.current_task(loop=loop)
+            tasks = [t for t in asyncio.all_tasks(
+                loop=loop) if t is not current]
             [task.cancel() for task in tasks]
             await asyncio.gather(*tasks, return_exceptions=True)
         except concurrent.futures.CancelledError:
@@ -285,7 +285,7 @@ class Scheduler:
         if 'exception' in context:
             ex = context['exception']
             sys.stderr.write(''.join(traceback.format_exception(
-                etype=type(ex), value=ex, tb=ex.__traceback__
+                type(ex), value=ex, tb=ex.__traceback__
             )))
         self.exception_caught = True
         if not loop.is_closed() and loop.is_running():
@@ -306,7 +306,7 @@ class Scheduler:
                 return
             ex = future.exception()
             sys.stderr.write(''.join(traceback.format_exception(
-                etype=type(ex), value=ex, tb=ex.__traceback__
+                type(ex), value=ex, tb=ex.__traceback__
             )))
         else:
             self.log('{} - task finished'.format(task_id),

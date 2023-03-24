@@ -17,6 +17,11 @@ try:
 except Exception:
     libvirt = None
 
+try:
+    from nova.virt.libvirt.config import NOVA_NS
+except Exception:
+    NOVA_NS = "http://openstack.org/xmlns/libvirt/nova/1.1"
+
 
 class LibvirtMetadata:
     """
@@ -26,7 +31,7 @@ class LibvirtMetadata:
     Class is intended to be shared between exporters for compute nodes.
     """
 
-    def __init__(self, xmlns='http://openstack.org/xmlns/libvirt/nova/1.0'):
+    def __init__(self, xmlns=NOVA_NS):
         self.uuidp = re.compile(
             '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}', re.I)
         self.STATS = 0
@@ -77,6 +82,13 @@ class LibvirtMetadata:
         Retrieve domain metadata from libvirt domain.
 
         Translates retrieved xml string into python dict.
+
+        Identify xmlns manually:
+
+        domain_xml = domain.XMLDesc()
+        idx = domain_xml.find('xmlns')
+        xmlns = domain_xml[idx+12:idx+55]
+
         """
         data = {}
         try:
