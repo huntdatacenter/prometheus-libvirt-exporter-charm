@@ -67,10 +67,14 @@ class LibvirtMetadata:
         data = {}
         if tree.keys():
             data = dict(tree.items())
-        if hasattr(tree, 'getchildren') and tree.getchildren():
+        if hasattr(tree, 'iter') and len(tree):
+            for item in tree.iter():
+                if item != tree:
+                    data[item.tag] = self._load_xml_tree(item)
+        elif hasattr(tree, 'getchildren') and tree.getchildren():
             for item in tree.getchildren():
                 data[item.tag] = self._load_xml_tree(item)
-        elif tree.text:
+        elif tree.text and tree.text.strip():
             if data:
                 data['value'] = tree.text
             else:
