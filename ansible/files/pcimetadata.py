@@ -14,6 +14,9 @@
 
 
 DRIVERS = ['vfio-pci']
+VENDORS = {
+    '10de': 'NVIDIA'
+}
 
 
 def pci_slot(devfn):
@@ -55,13 +58,13 @@ def get_pci_ids(path='/usr/share/misc/pci.ids'):
     return pci_ids
 
 
-def get_pci_devices(path="/proc/bus/pci/devices", resolve=False, raw=False):
+def get_pci_devices(path="/proc/bus/pci/devices", resolve=False, raw=False, by_vendor=False):
     if resolve:
         pciids = get_pci_ids()
     items = [x.replace(' ', '').split('\t') for x in open(path).read().split('\n')]
     devices = {}
     for item in items:
-        if item and item[-1] in DRIVERS:
+        if len(item) > 1 and (item[-1] in DRIVERS or (by_vendor and item[1] and item[1][:4] in VENDORS)):
             vendor_id = item[1][:4]
             product_id = item[1][4:]
             device = dict(
@@ -92,7 +95,7 @@ def get_pci_devices(path="/proc/bus/pci/devices", resolve=False, raw=False):
 
 
 if __name__ == "__main__":
-    devices = get_pci_devices(resolve=True)
+    devices = get_pci_devices(resolve=True, by_vendor=True)
     items = []
     for key, device in devices.items():
         meta = ','.join(['{key}="{value}"'.format(key=k, value=v) for k, v in device.items()])
