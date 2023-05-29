@@ -1,7 +1,8 @@
 series: jammy
 applications:
   prometheus-libvirt-exporter:
-    charm: huntdatacenter-prometheus-libvirt-exporter
+    #charm: huntdatacenter-prometheus-libvirt-exporter
+    charm: /home/ubuntu/vagrant/prometheus-libvirt-exporter_ubuntu-20.04-amd64_ubuntu-22.04-amd64.charm
     options:
       libvirtservice: "libvirtd.service"
   ubuntu:
