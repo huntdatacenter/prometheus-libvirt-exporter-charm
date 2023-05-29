@@ -59,6 +59,10 @@ runcmd:
     # Make sure juju directory is there
     sudo -u ubuntu mkdir -p /home/ubuntu/.local/share/juju
     sudo -u ubuntu HOME=/home/ubuntu juju
-    sudo -u ubuntu bash -c "echo alias watch-juju=\'watch --color -n1 juju status --color\' >> /home/ubuntu/.bashrc"
+    sudo -u ubuntu bash -c "echo alias watch-juju=\'juju status --watch 3s\' >> /home/ubuntu/.bashrc"
+
+  - |
+    # Create symlink for compatibility but mount inside home so that juju snap can access
+    ln -sf /home/ubuntu/vagrant /vagrant
 
 final_message: "The system is finally up, after $UPTIME seconds"
