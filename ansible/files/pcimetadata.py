@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+# grep vfio /proc/bus/pci/devices
+
 # pci_device_status{
 #     vendorid="10de",
 #     deviceid="1df6",
@@ -51,7 +53,7 @@ def get_pci_ids(path='/usr/share/misc/pci.ids'):
             vendor['id'] = item[0].lower()
             vendor['name'] = item[1]
             vendor['devices'] = {}
-            if not vendor['id'] in pci_ids:
+            if vendor['id'] not in pci_ids:
                 pci_ids[vendor['id']] = vendor.copy()
             else:
                 print("Duplicit vendor ID {vendor_id}".format(vendor_id=vendor['id']))
