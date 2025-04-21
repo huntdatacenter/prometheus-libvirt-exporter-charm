@@ -15,7 +15,7 @@ options:
     description: |
       Debug logging for exporter.
   libvirtservice:
-    default: "libvirt-guests.service"
+    default: "libvirtd.service"
     type: string
     description: |
       Name of libvirt service - systemd dependency (example: libvirtd.service)

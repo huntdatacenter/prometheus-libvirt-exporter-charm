@@ -7,9 +7,7 @@ tags:
   - monitoring
   - prometheus
 subordinate: true
-series:
-  - focal
-  - jammy
+
 requires:
   nova-compute:
     interface: juju-info

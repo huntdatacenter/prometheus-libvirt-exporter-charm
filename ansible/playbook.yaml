@@ -3,7 +3,7 @@
     ### Libvirt Prometheus Exporter
     - name: Install dependencies
       apt:
-        name: ["python3-pip", "python3-libvirt", "systemd-container", "sysstat"]
+        name: ["python3-pip", "python3-libvirt", "systemd-container", "sysstat", "net-tools"]
         state: present
       tags: install
 
@@ -77,41 +77,41 @@
     - name: Assure libvirt_exporter service enabled
       systemd:
         name: libvirt_exporter
-        enabled: yes
+        enabled: true
         daemon-reload: "{{ service.changed }}"
-      ignore_errors: yes
+      ignore_errors: true
       tags: install
 
     - name: Restart libvirt_exporter
       systemd:
         name: libvirt_exporter
         state: restarted
-        enabled: yes
+        enabled: true
       register: service_restart
       when: exporter.changed or lm.changed or pm.changed or ts.changed or prom_c.changed or service.changed
-      ignore_errors: yes
+      ignore_errors: true
       tags: install
 
     - name: Start and enable libvirt_exporter
       systemd:
         name: libvirt_exporter
         state: started
-        enabled: yes
+        enabled: true
       when: service_restart is skipped
-      ignore_errors: yes
+      ignore_errors: true
       tags: install
 
     - name: Assure started and enabled libvirt_exporter
       systemd:
         name: libvirt_exporter
         state: started
-        enabled: yes
+        enabled: true
       tags: never, start
 
     - name: Stop and disable libvirt_exporter
       systemd:
         name: libvirt_exporter
         state: stopped
-        enabled: no
-      ignore_errors: yes
+        enabled: false
+      ignore_errors: true
       tags: never, uninstall

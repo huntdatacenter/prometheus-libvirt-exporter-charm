@@ -11,6 +11,12 @@ parts:
       - python3-venv
       - python3-testresources
       - python3-pkg-resources
+      - rustc
+      - cargo
+      - pkg-config
+      - git
+    charm-python-packages:
+      - setuptools
     # source: .
     # plugin: reactive
     # build-snaps: [charm]
@@ -27,6 +33,27 @@ parts:
       - lib
       - requirements-dev.txt
       - requirements.txt
+      # Open MR if you want to delist excluded collection
+      - -venv/ansible_collections/fortinet
+      - -venv/ansible_collections/cisco
+      - -venv/ansible_collections/dellemc
+      - -venv/ansible_collections/netapp
+      - -venv/ansible_collections/netapp_eseries
+      - -venv/ansible_collections/f5networks
+      - -venv/ansible_collections/azure
+      - -venv/ansible_collections/google
+      - -venv/ansible_collections/amazon
+      - -venv/ansible_collections/junipernetworks
+      - -venv/ansible_collections/vmware
+      - -venv/ansible_collections/vyos
+      - -venv/ansible_collections/purestorage
+      - -venv/ansible_collections/arista
+      - -venv/ansible_collections/ibm
+      - -venv/ansible_collections/chocolatey
+      - -venv/ansible_collections/microsoft
+      - -venv/ansible_collections/check_point
+      - -*/**/*.exe
+      - -*/**/__pycache__/
 bases:
   - build-on:
       - name: "ubuntu"
@@ -36,3 +63,5 @@ bases:
         channel: "20.04"
       - name: "ubuntu"
         channel: "22.04"
+      - name: "ubuntu"
+        channel: "24.04"

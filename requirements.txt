@@ -1,18 +1,17 @@
-prometheus-client<=0.8.0
-#cffi<=1.13.2
-pip==20.3.4
-packaging>=20.0,<21.0
-six<=1.16.0
-MarkupSafe<=1.1.1
-Jinja2<=2.11.3
-PyYAML==5.4
-cryptography==3.3.2
-ansible==4.2.0
-ansible-core==2.11.2
-pbr==5.5.1
-setuptools<58
-resolvelib<=0.5.4
+prometheus-client
+
+ops >= 1.4.0
+
+MarkupSafe
+
+ansible>=10.2.0,<11.0.0; python_version >= '3.8'
+# TODO -- ansible 8.0.0+ getting error
+# couldn't resolve module/action 'ansible.builtin.apt'. This often indicates a misspelling, missing collection, or incorrect module path
+ansible>=7.0.0,<8.0.0; python_version < '3.8'
+
+Jinja2>=3.0.0
+pyyaml
+
 netaddr<=0.7.19
-charmhelpers==1.1.0
-pyaml==21.10.1
-charms.reactive==1.5.0
+charms.reactive==1.5.3
+git+https://github.com/juju/charm-helpers.git@81697653d4e4125ebe7b0495041cc70e989765af

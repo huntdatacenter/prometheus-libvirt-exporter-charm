@@ -67,9 +67,9 @@ lint: ## Run linter
 
 
 build: ## Build charm
-	mkdir -p $(CHARM_BUILD_DIR)
-	tox -e build
-	cp prometheus-libvirt-exporter_ubuntu-20.04-amd64_ubuntu-22.04-amd64.charm $(CHARM_PATH)
+	charmcraft pack --verbose
+#	mkdir -p $(CHARM_BUILD_DIR)
+#	cp prometheus-libvirt-exporter_ubuntu-20.04-amd64_ubuntu-22.04-amd64.charm $(CHARM_PATH)
 
 
 deploy: ## Deploy charm

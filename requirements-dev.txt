@@ -1,2 +1,6 @@
 
-cffi==1.14.6; python_version < '3.6'
+#cffi==1.14.6; python_version < '3.6'
+-r requirements.txt
+coverage
+flake8
+MarkupSafe
