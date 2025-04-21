@@ -31,6 +31,12 @@ def pci_func(devfn):
 
 
 def get_pci_ids(path='/usr/share/misc/pci.ids'):
+    """
+    Get PCI IDs from /usr/share/misc/pci.ids
+
+    pci.ids file is part of apt package: pci.ids (might not contain latest GPUs unless upgraded)
+
+    """
     pci_ids_data = open(path).read().split('\n')
     pci_ids = {}
     items = [[item for item in row.replace('\t', '\t  ').split('  ') if item] for row in pci_ids_data[:]]
@@ -61,6 +67,11 @@ def get_pci_ids(path='/usr/share/misc/pci.ids'):
 
 
 def get_pci_devices(path="/proc/bus/pci/devices", resolve=False, raw=False, by_vendor=False):
+    """
+    Get PCI devices
+    https://docs.python.org/3/library/string.html#format-specification-mini-language
+
+    """
     if resolve:
         pciids = get_pci_ids()
     items = [x.replace(' ', '').split('\t') for x in open(path).read().split('\n')]
@@ -70,22 +81,30 @@ def get_pci_devices(path="/proc/bus/pci/devices", resolve=False, raw=False, by_v
             vendor_id = item[1][:4]
             product_id = item[1][4:]
             device = dict(
-                bus=hex(int(item[0][:2], 16)),
+                bus=format(int(item[0][:2], 16), '#04x'),  # needs to work for '0a' -> '0x0a'
                 slot=pci_slot(int(item[0][2:], 16)),
                 function=pci_func(int(item[0][2:], 16)),
-                vendor_id=hex(int(vendor_id, 16)),
-                product_id=hex(int(product_id, 16)),
+                vendor_id=format(int(vendor_id, 16), '#06x'),
+                product_id=format(int(product_id, 16), '#06x'),
                 # irq=item[2],
                 driver=item[-1],
             )
             if resolve:
-                product = pciids[vendor_id]["devices"][product_id]["name"]
-                device_name = product.split('[', 1)[0].strip() if '[' in product else product
-                device.update(
-                    vendor=pciids[vendor_id]["name"],
-                    device=device_name,
-                    product=product,
-                )
+                if product_id in pciids[vendor_id]["devices"]:
+                    product = pciids[vendor_id]["devices"][product_id]["name"]
+                    device_name = product.split('[', 1)[0].strip() if '[' in product else product
+                    device.update(
+                        vendor=pciids[vendor_id]["name"],
+                        device=device_name,
+                        product=product,
+                    )
+                else:
+                    # Device not found in /usr/share/misc/pci.ids
+                    device.update(
+                        vendor=pciids[vendor_id]["name"],
+                        device=None,
+                        product=None,
+                    )
             if raw:
                 device['raw'] = item
             key = '{}:{}.{}'.format(
