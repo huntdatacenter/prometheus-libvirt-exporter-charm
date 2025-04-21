@@ -305,7 +305,7 @@ class LibvirtMetadata:
         for key, device in pci_devices.items():
             try:
                 value = 0 if key in gpus_allocated else 1
-                metrics = ["function", "bus", "slot", "product_id", "vendor_id"]
+                metrics = ["bus", "slot", "function", "product_id", "vendor_id"]
                 meta = ','.join(['{}={}'.format(key, value) for key, value in device.items() if (
                     value and key in metrics)])
                 if meta not in items['variable']:
@@ -338,7 +338,7 @@ class LibvirtMetadata:
 
         gpu_devices = self.get_gpu_devices(domain)
         pci_devices = get_pci_devices(resolve=False)
-        metrics = ["function", "bus", "slot", "product_id", "vendor_id"]
+        metrics = ["bus", "slot", "function", "product_id", "vendor_id"]
 
         for key, gpu_info in gpu_devices.items():
             try:
