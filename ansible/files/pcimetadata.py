@@ -14,6 +14,9 @@
 #     model="Tesla V100S PCIe 32GB"
 # } 1.0
 
+import os
+import glob
+
 
 DRIVERS = ['vfio-pci']
 VENDORS = {
@@ -21,12 +24,12 @@ VENDORS = {
 }
 
 
-def pci_slot(devfn):
+def get_pci_dev(devfn):
     slot = (((devfn) >> 3) & 0x1f)
     return hex(slot) if slot else '0x00'
 
 
-def pci_func(devfn):
+def get_pci_func(devfn):
     return hex((devfn) & 0x07)
 
 
@@ -66,24 +69,36 @@ def get_pci_ids(path='/usr/share/misc/pci.ids'):
     return pci_ids
 
 
+def resolve_domains(bus, dev, fn):
+    """Return ALL domains matching this bus:dev.fn (handles duplicate bus:dev.fn across domains)."""
+    pattern = f'/sys/bus/pci/devices/*:{bus:02x}:{dev:02x}.{fn}'
+    return [
+        os.path.basename(m).split(':')[0]
+        for m in glob.glob(pattern)
+    ]
+
+
 def get_pci_devices(path="/proc/bus/pci/devices", resolve=False, raw=False, by_vendor=False):
     """
     Get PCI devices
     https://docs.python.org/3/library/string.html#format-specification-mini-language
 
+    Notice: slot is supposed to be 'dev/device' as in lspci: `([domain:]bus:device.function)`
+
     """
     if resolve:
         pciids = get_pci_ids()
     items = [x.replace(' ', '').split('\t') for x in open(path).read().split('\n')]
-    devices = {}
+    pci_devices = {}
+    pci_domains = {}
     for item in items:
         if len(item) > 1 and (item[-1] in DRIVERS or (by_vendor and item[1] and item[1][:4] in VENDORS)):
             vendor_id = item[1][:4]
             product_id = item[1][4:]
             device = dict(
                 bus=format(int(item[0][:2], 16), '#04x'),  # needs to work for '0a' -> '0x0a'
-                slot=pci_slot(int(item[0][2:], 16)),
-                function=pci_func(int(item[0][2:], 16)),
+                slot=get_pci_dev(int(item[0][2:], 16)),
+                function=get_pci_func(int(item[0][2:], 16)),
                 vendor_id=format(int(vendor_id, 16), '#06x'),
                 product_id=format(int(product_id, 16), '#06x'),
                 # irq=item[2],
@@ -111,8 +126,23 @@ def get_pci_devices(path="/proc/bus/pci/devices", resolve=False, raw=False, by_v
                 device.get('bus')[2:],
                 device.get('slot')[2:],
                 device.get('function')[2:])
-            devices[key] = device
-    return devices
+
+            # Fetch domains based on bus
+            tmp_domains = resolve_domains(
+                bus=device.get('bus')[2:],
+                dev=device.get('slot')[2:],
+                fn=device.get('function')[2:])
+            # link one domain per device if bus:dev.fn is not unique
+            if key not in pci_domains:
+                pci_domains[key] = []
+            for pci_domain in tmp_domains:
+                if pci_domain not in pci_domains[key]:
+                    key = f"{pci_domain}:{key}"
+                    pci_domains[key].append(key)
+                    break
+
+            pci_devices[key] = device
+    return pci_devices
 
 
 if __name__ == "__main__":
