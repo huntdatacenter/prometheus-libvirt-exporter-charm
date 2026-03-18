@@ -5,6 +5,7 @@ packages:
   - jq
   - tox
   - gnome-keyring
+  - unzip
 
 bootcmd:
   - printf "[Resolve]\nDNS=1.1.1.1\n" > /etc/systemd/resolved.conf
@@ -14,7 +15,7 @@ snap:
   commands:
     - snap install multipass-sshfs
     # - snap install lxd --channel=5.0/stable
-    - snap install juju --channel=3.5/stable
+    - snap install juju --channel=3.6/stable
     - snap install charmcraft --classic --channel=1.7/stable
     # - snap install charm --classic --channel=stable
     # - snap refresh
@@ -57,9 +58,12 @@ runcmd:
 
   - |
     # Make sure juju directory is there
+    sudo -u ubuntu HOME=/home/ubuntu bash -c "curl -LsSf https://astral.sh/uv/install.sh -o /tmp/uv.sh && sh /tmp/uv.sh"
     sudo -u ubuntu mkdir -p /home/ubuntu/.local/share/juju
     sudo -u ubuntu HOME=/home/ubuntu juju
-    sudo -u ubuntu bash -c "echo alias watch-juju=\'juju status --watch 3s\' >> /home/ubuntu/.bashrc"
+    sudo -u ubuntu bash -c "echo alias watch-juju=\'watch -n 3 juju status --relations --storage\' >> /home/ubuntu/.bashrc"
+    sudo -u ubuntu bash -c "echo '[ -z "\$TMUX" ] && exec tmux new-session -A -s workspace' >> /home/ubuntu/.bashrc"
+    sudo -u ubuntu bash -c "echo 'set -g mouse on' >> /home/ubuntu/.tmux.conf"
 
   - |
     # Create symlink for compatibility but mount inside home so that juju snap can access
