@@ -4,6 +4,8 @@ ops >= 1.4.0
 
 MarkupSafe
 
+cryptography==41.0.7
+
 ansible>=10.2.0,<11.0.0; python_version >= '3.8'
 # TODO -- ansible 8.0.0+ getting error
 # couldn't resolve module/action 'ansible.builtin.apt'. This often indicates a misspelling, missing collection, or incorrect module path
