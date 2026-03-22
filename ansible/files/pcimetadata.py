@@ -27,7 +27,7 @@ VENDORS = {
 }
 
 
-def get_pci_dev(dev_fn):
+def get_pci_dev_slot(dev_fn):
     slot_dev = (((dev_fn) >> 3) & 0x1f)
     return hex(slot_dev) if slot_dev else '0x00'
 
@@ -86,7 +86,7 @@ def get_pci_devices(path="/proc/bus/pci/devices", resolve=False, raw=False, by_v
     Get PCI devices
     https://docs.python.org/3/library/string.html#format-specification-mini-language
 
-    Using lspci format: `domain:bus:device.function`
+    Using lspci format: `domain:bus:deviceslot.function`
 
     """
     if resolve:
@@ -99,11 +99,11 @@ def get_pci_devices(path="/proc/bus/pci/devices", resolve=False, raw=False, by_v
             vendor_id = item[1][:4]
             product_id = item[1][4:]
             bus_number = item[0][:2]
-            dev_number = get_pci_dev(int(item[0][2:], 16))
+            slot_number = get_pci_dev_slot(int(item[0][2:], 16))
             fn_number = get_pci_func(int(item[0][2:], 16))
             device = dict(
                 bus=format(int(bus_number, 16), '#04x'),  # needs to work for '0a' -> '0x0a'
-                dev=dev_number,
+                slot=slot_number,
                 function=fn_number,
                 vendor_id=format(int(vendor_id, 16), '#06x'),
                 product_id=format(int(product_id, 16), '#06x'),
@@ -128,26 +128,26 @@ def get_pci_devices(path="/proc/bus/pci/devices", resolve=False, raw=False, by_v
                     )
             if raw:
                 device.update(raw=item)
-            slot = '{}:{}.{}'.format(
+            short_slot = '{}:{}.{}'.format(
                 device.get('bus')[2:],
-                device.get('dev')[2:],
+                device.get('slot')[2:],
                 device.get('function')[2:])
 
             # Fetch domains based on bus
-            tmp_domains = list_pci_domains(slot)
+            tmp_domains = list_pci_domains(short_slot)
             if os.getenv("DEBUG"):
                 print(f"# Domains: {','.join(tmp_domains)}")
             # link one domain per device if bus:dev.fn is not unique
-            pci_domains.setdefault(slot, set())
+            pci_domains.setdefault(short_slot, set())
             for pci_domain in tmp_domains:
-                if pci_domain not in pci_domains[slot]:
-                    pci_domains[slot].add(pci_domain)
-                    slot_key = f"{pci_domain}:{slot}"
-                    device.update(domain=pci_domain)
+                if pci_domain not in pci_domains[short_slot]:
+                    pci_domains[short_slot].add(pci_domain)
+                    slot_key = f"{pci_domain}:{short_slot}"
+                    device.update(pci_domain=f"0x{pci_domain}")
                     break
             else:
                 # In case domain is not matched a default domain 0 is used.
-                slot_key = f"0000:{slot}"
+                slot_key = f"0000:{short_slot}"
 
             if os.getenv("DEBUG"):
                 print(f"# Device: {slot_key}")

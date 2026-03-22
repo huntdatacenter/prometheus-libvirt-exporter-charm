@@ -5,6 +5,24 @@ Libvirt metadata
 Connection to libvirt and export of metadata.
 Includes VM info held by libvirt and statistics.
 
+.. code-block:: python
+
+    from libvirtmetadata import LibvirtMetadata
+
+    libv_meta = LibvirtMetadata()
+    libv_meta.load_libvirt_metadata()
+
+    libv_meta.LIBVIRT_INSTANCES
+
+    instance = list(libv_meta.LIBVIRT_INSTANCES.keys())[0]
+
+    with libv_meta.libvirt_connection() as conn:
+        domain = conn.lookupByName(instance)
+
+    data = libv_meta.retrieve_domain_metadata(domain)
+
+    libv_meta.get_gpu_devices(domain)
+
 """
 import re
 import uuid
@@ -277,11 +295,13 @@ class LibvirtMetadata:
                         type=gpu_info.get('type'),
                         alias=alias,
                         driver=gpu_info.get('driver', {}).get('name', 'unknown'),
+                        pci_domain=address.get('domain', 'unknown'),
                         bus=address.get('bus', 'unknown'),
                         slot=address.get('slot', 'unknown'),
                         function=address.get('function', 'unknown'),
                     )
-                    key = '{}:{}.{}'.format(
+                    key = '{}:{}:{}.{}'.format(
+                        address.get('domain')[2:],
                         address.get('bus')[2:],
                         address.get('slot')[2:],
                         address.get('function')[2:])
@@ -305,7 +325,7 @@ class LibvirtMetadata:
         for key, device in pci_devices.items():
             try:
                 value = 0 if key in gpus_allocated else 1
-                metrics = ["bus", "slot", "function", "product_id", "vendor_id"]
+                metrics = ["pci_domain", "bus", "slot", "function", "product_id", "vendor_id"]
                 meta = ','.join(['{}={}'.format(key, value) for key, value in device.items() if (
                     value and key in metrics)])
                 if meta not in items['variable']:
@@ -338,7 +358,7 @@ class LibvirtMetadata:
 
         gpu_devices = self.get_gpu_devices(domain)
         pci_devices = get_pci_devices(resolve=False)
-        metrics = ["bus", "slot", "function", "product_id", "vendor_id"]
+        metrics = ["pci_domain", "bus", "slot", "function", "product_id", "vendor_id"]
 
         for key, gpu_info in gpu_devices.items():
             try:
