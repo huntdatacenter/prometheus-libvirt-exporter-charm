@@ -325,7 +325,7 @@ class LibvirtMetadata:
         for key, device in pci_devices.items():
             try:
                 value = 0 if key in gpus_allocated else 1
-                metrics = ["pci_domain", "bus", "slot", "function", "product_id", "vendor_id", "model", "vram_gb"]
+                metrics = ["pci_domain", "bus", "slot", "function", "product_id", "vendor_id", "vendor", "model", "vram_gb"]
                 meta = ','.join(['{}={}'.format(key, value) for key, value in device.items() if (
                     value and key in metrics)])
                 if meta not in items['variable']:
@@ -339,7 +339,7 @@ class LibvirtMetadata:
             try:
                 value = 0 if key in gpus_allocated else 1
                 allocated = 1 if key in gpus_allocated else 0
-                metrics = ["product_id", "vendor_id"]
+                metrics = ["product_id", "vendor_id", "vendor", "model", "vram_gb"]
                 meta = ','.join(['{}={}'.format(key, value) for key, value in device.items() if (
                     value and key in metrics)])
                 if meta not in items['variable']:
@@ -358,7 +358,7 @@ class LibvirtMetadata:
 
         gpu_devices = self.get_gpu_devices(domain)
         pci_devices = get_pci_devices(resolve=False)
-        metrics = ["pci_domain", "bus", "slot", "function", "product_id", "vendor_id", "model", "vram_gb"]
+        metrics = ["pci_domain", "bus", "slot", "function", "product_id", "vendor_id", "vendor", "model", "vram_gb"]
 
         for key, gpu_info in gpu_devices.items():
             try:
@@ -367,7 +367,7 @@ class LibvirtMetadata:
 
                 if pci_devices.get(key):
                     device = pci_devices.get(key, {})
-                    for index in ["product_id", "vendor_id", "model", "vram_gb"]:
+                    for index in ["product_id", "vendor_id", "vendor", "model", "vram_gb"]:
                         meta_values.append('{}={}'.format(index, device.get(index, 'unknown')))
 
                 meta = ','.join(meta_values)
@@ -384,6 +384,7 @@ class LibvirtMetadata:
                     # driver=gpu_info.get('driver', 'unknown'),
                     product_id=pci_devices.get(key, {}).get('product_id', 'unknown'),
                     vendor_id=pci_devices.get(key, {}).get('vendor_id', 'unknown'),
+                    vendor=pci_devices.get(key, {}).get('vendor', 'unknown'),
                     model=pci_devices.get(key, {}).get('model', 'unknown'),
                     vram_gb=pci_devices.get(key, {}).get('vram_gb', ''),
                 ).items() if value])

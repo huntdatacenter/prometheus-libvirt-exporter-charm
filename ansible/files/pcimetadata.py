@@ -115,6 +115,7 @@ def get_pci_devices(path="/proc/bus/pci/devices", resolve=False, raw=False, by_v
                 bus=format(int(bus_number, 16), '#04x'),  # needs to work for '0a' -> '0x0a'
                 slot=slot_number,
                 function=fn_number,
+                vendor=VENDORS[item[1][:4]],
                 vendor_id=format(int(vendor_id, 16), '#06x'),
                 product_id=format(int(product_id, 16), '#06x'),
                 # irq=item[2],
@@ -126,14 +127,14 @@ def get_pci_devices(path="/proc/bus/pci/devices", resolve=False, raw=False, by_v
                     device_name = product.split('[', 1)[0].strip() if '[' in product else product
                     device.update(
                         vendor=pciids[vendor_id]["name"],
-                        device=device_name,
+                        model=device_name,
                         product=product,
                     )
                 else:
                     # Device not found in /usr/share/misc/pci.ids
                     device.update(
                         vendor=pciids[vendor_id]["name"],
-                        device=None,
+                        model=None,
                         product=None,
                     )
             if raw:
