@@ -19,12 +19,22 @@
 
 import os
 import glob
+import json
 
 
 DRIVERS = ['vfio-pci']
-VENDORS = {
-    '10de': 'NVIDIA'
-}
+try:
+    with open("/opt/libvirt_exporter/gpuinfo.json") as f:
+        data = json.load(f)
+        VENDORS = data.get('vendors', {}) or {
+            '10de': 'NVIDIA'
+        }
+        MODELS = data.get('models', {}) or {}
+except Exception:
+    VENDORS = {
+        '10de': 'NVIDIA'
+    }
+    MODELS = {}
 
 
 def get_pci_dev_slot(dev_fn):
@@ -132,6 +142,16 @@ def get_pci_devices(path="/proc/bus/pci/devices", resolve=False, raw=False, by_v
                 device.get('bus')[2:],
                 device.get('slot')[2:],
                 device.get('function')[2:])
+
+            try:
+                if MODELS:
+                    product_model_key = f"{device.get('vendor_id')[2:]}:{device.get('product_id')[2:]}"
+                    device.update(
+                        model=MODELS.get(product_model_key, {}).get("model", ""),
+                        vram_gb=MODELS.get(product_model_key, {}).get("vram_gb", ""),
+                    )
+            except Exception:
+                pass
 
             # Fetch domains based on bus
             tmp_domains = list_pci_domains(short_slot)

@@ -325,7 +325,7 @@ class LibvirtMetadata:
         for key, device in pci_devices.items():
             try:
                 value = 0 if key in gpus_allocated else 1
-                metrics = ["pci_domain", "bus", "slot", "function", "product_id", "vendor_id"]
+                metrics = ["pci_domain", "bus", "slot", "function", "product_id", "vendor_id", "model", "vram_gb"]
                 meta = ','.join(['{}={}'.format(key, value) for key, value in device.items() if (
                     value and key in metrics)])
                 if meta not in items['variable']:
@@ -358,16 +358,16 @@ class LibvirtMetadata:
 
         gpu_devices = self.get_gpu_devices(domain)
         pci_devices = get_pci_devices(resolve=False)
-        metrics = ["pci_domain", "bus", "slot", "function", "product_id", "vendor_id"]
+        metrics = ["pci_domain", "bus", "slot", "function", "product_id", "vendor_id", "model", "vram_gb"]
 
         for key, gpu_info in gpu_devices.items():
             try:
-                meta_values = ['{}={}'.format(key, value) for key, value in gpu_info.items() if (
+                meta_values = ['{}={}'.format(k, value) for k, value in gpu_info.items() if (
                     value and key in metrics)]
 
                 if pci_devices.get(key):
                     device = pci_devices.get(key, {})
-                    for index in ['product_id', 'vendor_id']:
+                    for index in ["product_id", "vendor_id", "model", "vram_gb"]:
                         meta_values.append('{}={}'.format(index, device.get(index, 'unknown')))
 
                 meta = ','.join(meta_values)
@@ -379,11 +379,13 @@ class LibvirtMetadata:
                     # If not unique (e.g. disabled bus/slot/func)
                     items['variable'][meta]['gpu_allocation'] += 1
 
-                gpus_total = ','.join(['{}={}'.format(key, value) for key, value in dict(
+                gpus_total = ','.join(['{}={}'.format(k, value) for k, value in dict(
                     # type=gpu_info.get('type'),
                     # driver=gpu_info.get('driver', 'unknown'),
                     product_id=pci_devices.get(key, {}).get('product_id', 'unknown'),
                     vendor_id=pci_devices.get(key, {}).get('vendor_id', 'unknown'),
+                    model=pci_devices.get(key, {}).get('model', 'unknown'),
+                    vram_gb=pci_devices.get(key, {}).get('vram_gb', ''),
                 ).items() if value])
                 if gpus_total not in items['variable']:
                     items['variable'][gpus_total] = {'vm_gpus_total': 0}

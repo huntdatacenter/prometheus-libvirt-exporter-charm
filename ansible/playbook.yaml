@@ -2,19 +2,26 @@
   tasks:
     ### Libvirt Prometheus Exporter
     - name: Install dependencies
-      apt:
-        name: ["python3-pip", "python3-libvirt", "systemd-container", "sysstat", "net-tools"]
+      ansible.builtin.apt:
+        name:
+          [
+            "python3-pip",
+            "python3-libvirt",
+            "systemd-container",
+            "sysstat",
+            "net-tools",
+          ]
         state: present
       tags: install
 
     - name: Check pip3 local path
-      stat:
+      ansible.builtin.stat:
         path: /usr/local/bin/pip3
       register: pip3_local
       tags: install
 
     - name: Install prometheus_client
-      pip:
+      ansible.builtin.pip:
         name: prometheus_client<=0.12.0
         state: present
         executable: /usr/local/bin/pip3
@@ -23,7 +30,7 @@
       tags: install
 
     - name: Install prometheus_client
-      pip:
+      ansible.builtin.pip:
         name: prometheus_client<=0.12.0
         state: present
         executable: /usr/bin/pip3
@@ -32,50 +39,50 @@
       tags: install
 
     - name: Create libvirt exporter directory
-      file:
+      ansible.builtin.file:
         path: /opt/libvirt_exporter
         state: directory
-        mode: '0755'
+        mode: "0755"
       tags: install
 
     - name: Place libvirt metadata manager
-      copy:
+      ansible.builtin.copy:
         src: libvirtmetadata.py
         dest: /opt/libvirt_exporter/libvirtmetadata.py
       register: lm
       tags: install
 
     - name: Place pci metadata manager
-      copy:
+      ansible.builtin.copy:
         src: pcimetadata.py
         dest: /opt/libvirt_exporter/pcimetadata.py
       register: pm
       tags: install
 
     - name: Place task scheduler
-      copy:
+      ansible.builtin.copy:
         src: scheduler.py
         dest: /opt/libvirt_exporter/scheduler.py
       register: ts
       tags: install
 
     - name: Place libvirt exporter
-      copy:
+      ansible.builtin.copy:
         src: libvirt_exporter.py
         dest: /opt/libvirt_exporter/libvirt_exporter.py
       register: exporter
       tags: install
 
     - name: Render libvirt_exporter service template
-      template:
+      ansible.builtin.template:
         src: libvirt_exporter.service.j2
         dest: /etc/systemd/system/libvirt_exporter.service
-        mode: 0644
+        mode: "0644"
       register: service
       tags: install
 
     - name: Assure libvirt_exporter service enabled
-      systemd:
+      ansible.builtin.systemd:
         name: libvirt_exporter
         enabled: true
         daemon-reload: "{{ service.changed }}"
@@ -83,7 +90,7 @@
       tags: install
 
     - name: Restart libvirt_exporter
-      systemd:
+      ansible.builtin.systemd:
         name: libvirt_exporter
         state: restarted
         enabled: true
@@ -92,8 +99,18 @@
       ignore_errors: true
       tags: install
 
+    - name: Config file
+      ansible.builtin.copy:
+        content: "{{ gpuinfo }}"
+        dest: "/opt/libvirt_exporter/gpuinfo.json"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      ignore_errors: true
+      tags: install, start
+
     - name: Start and enable libvirt_exporter
-      systemd:
+      ansible.builtin.systemd:
         name: libvirt_exporter
         state: started
         enabled: true
@@ -102,14 +119,14 @@
       tags: install
 
     - name: Assure started and enabled libvirt_exporter
-      systemd:
+      ansible.builtin.systemd:
         name: libvirt_exporter
         state: started
         enabled: true
       tags: never, start
 
     - name: Stop and disable libvirt_exporter
-      systemd:
+      ansible.builtin.systemd:
         name: libvirt_exporter
         state: stopped
         enabled: false

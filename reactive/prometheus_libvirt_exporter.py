@@ -41,6 +41,7 @@ def install_deps():
             exp_port=config.get('port'),
             exp_host=get_ip()[0],
             libvirtservice=config.get('libvirtservice'),
+            gpuinfo=config.get('gpuinfo'),
         ))
     status_set('active', 'ready')
     set_flag('prometheus-libvirt-exporter.installed')
@@ -56,6 +57,7 @@ def stop():
             exp_port=config.get('port'),
             exp_host=get_ip()[0],
             libvirtservice=config.get('libvirtservice'),
+            gpuinfo=config.get('gpuinfo'),
         ))
 
 
@@ -69,6 +71,7 @@ def start():
             exp_port=config.get('port'),
             exp_host=get_ip()[0],
             libvirtservice=config.get('libvirtservice'),
+            gpuinfo=config.get('gpuinfo'),
         ))
     status_set('active', 'ready')
 
@@ -82,6 +85,7 @@ def upgrade_charm():
             exp_port=config.get('port'),
             exp_host=get_ip()[0],
             libvirtservice=config.get('libvirtservice'),
+            gpuinfo=config.get('gpuinfo'),
         ))
     status_set('active', 'ready')
 
@@ -96,6 +100,7 @@ def update_status():
                 exp_port=config.get('port'),
                 exp_host=get_ip()[0],
                 libvirtservice=config.get('libvirtservice'),
+                gpuinfo=config.get('gpuinfo'),
             ))
     except Exception:
         log('Exporter service failed to start. Need libvirt-bin service.')

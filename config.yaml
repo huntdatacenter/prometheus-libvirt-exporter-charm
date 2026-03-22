@@ -19,3 +19,8 @@ options:
     type: string
     description: |
       Name of libvirt service - systemd dependency (example: libvirtd.service)
+  gpuinfo:
+    default: "{}"
+    type: string
+    description: |
+      GPU vendor and model names.
